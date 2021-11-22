@@ -15,3 +15,37 @@ Likes, which is an integer
 
 Practice creating a social media post with whatever data you like, so long as it compiles.
 """
+from typing import List, Optional
+
+from pydantic import BaseModel
+
+
+class Comment(BaseModel):
+    author: str
+    comment: str
+    likes: int
+
+
+class Post(BaseModel):
+    author: str
+    co_author: Optional[str] = None
+    date: str
+    title: str
+    content: str
+    ID: int
+    likes: List[str]
+    comment: List[Comment]
+
+
+comment = [Comment(author="Jane.Doe", comment="Hi there!", likes=5)]
+
+post = Post(
+    author="John.Doe",
+    co_author="Jane.Doe",
+    date="22/11/2021",
+    title="Blindspot",
+    content="Lorem ipsum dolor",
+    ID=101,
+    likes=["jill", "jake"],
+    comment=comment,
+)
