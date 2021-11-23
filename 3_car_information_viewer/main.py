@@ -80,3 +80,14 @@ def update_car(id: int, car: Car = Body(...)):
     response[id] = cars[id]
 
     return response
+
+
+@app.delete("/cars/{id}")
+def delete_car(id: int):
+    if not cars.get(id):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Could not find car with the given ID",
+        )
+
+    del cars[id]
