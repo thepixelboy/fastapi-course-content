@@ -2,9 +2,13 @@ from typing import Dict, List, Optional
 
 from fastapi import Body, FastAPI, HTTPException, Path, Query, status
 from fastapi.encoders import jsonable_encoder
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel, Field
 
 from database import cars
+
+templates = Jinja2Templates(directory="templates")
 
 
 class Car(BaseModel):
@@ -18,6 +22,7 @@ class Car(BaseModel):
 
 
 app = FastAPI()
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
 @app.get("/")
