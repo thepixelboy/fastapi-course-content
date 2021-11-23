@@ -1,6 +1,6 @@
 from typing import Dict, List, Optional
 
-from fastapi import FastAPI, Query
+from fastapi import FastAPI, HTTPException, Path, Query, status
 from pydantic import BaseModel, Field
 
 from database import cars
@@ -33,3 +33,15 @@ def get_cars(number: Optional[str] = Query("10", max_length=3)):
         response.append(to_add)
 
     return response
+
+
+@app.get("/cars/{id}", response_model=Car)
+def get_car_by_id(id: int = Path(..., ge=0, lt=1000)):
+    car = cars.get(id)
+    if not car:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Could not find car by ID.",
+        )
+
+    return car
