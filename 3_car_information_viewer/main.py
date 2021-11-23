@@ -1,6 +1,15 @@
 from typing import Dict, List, Optional
 
-from fastapi import Body, FastAPI, HTTPException, Path, Query, Request, status
+from fastapi import (
+    Body,
+    FastAPI,
+    Form,
+    HTTPException,
+    Path,
+    Query,
+    Request,
+    status,
+)
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
@@ -46,16 +55,22 @@ def get_cars(
     )
 
 
-@app.get("/cars/{id}", response_model=Car)
-def get_car_by_id(id: int = Path(..., ge=0, lt=1000)):
+@app.get("/cars/{id}", response_class=HTMLResponse)
+def get_car_by_id(request: Request, id: int = Path(..., ge=0, lt=1000)):
     car = cars.get(id)
+    response = templates.TemplateResponse(
+        "search.html",
+        {"request": request, "car": car, "id": id, "title": "Search Car"},
+    )
     if not car:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Could not find car by ID.",
-        )
+        response.status_code = status.HTTP_404_NOT_FOUND
 
-    return car
+    return response
+
+
+@app.post("/search", response_class=RedirectResponse)
+def search_cars(id: str = Form(...)):
+    return RedirectResponse("/cars/" + id, status_code=302)
 
 
 @app.post("/cars", status_code=status.HTTP_201_CREATED)
