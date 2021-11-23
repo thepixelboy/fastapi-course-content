@@ -1,13 +1,13 @@
 from typing import List, Optional
 
 from fastapi import FastAPI
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class Car(BaseModel):
     make: str
     model: str
-    year: int
+    year: int = Field(..., ge=1970, lt=2022)
     price: float
     engine: Optional[str] = "V4"
     autonomous: bool
