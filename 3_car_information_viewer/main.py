@@ -1,10 +1,12 @@
 from typing import Dict, List, Optional
 
-from fastapi import Body, FastAPI, HTTPException, Path, Query, status
+from fastapi import Body, FastAPI, HTTPException, Path, Query, Request, status
 from fastapi.encoders import jsonable_encoder
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel, Field
+from starlette.responses import HTMLResponse
+from starlette.status import HTTP_400_BAD_REQUEST
 
 from database import cars
 
@@ -25,9 +27,9 @@ app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
-@app.get("/")
-def root():
-    return {"Welcome to": "your first API in FastAPI!", "This is": "so cool!"}
+@app.get("/", response_class=HTMLResponse)
+def root(request: Request):
+    return templates.TemplateResponse("home.html", {"request": request})
 
 
 @app.get("/cars", response_model=List[Dict[str, Car]])
