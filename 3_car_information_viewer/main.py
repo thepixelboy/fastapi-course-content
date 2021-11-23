@@ -91,6 +91,20 @@ def edit_car(request: Request, id: int = Query(...)):
     )
 
 
+@app.get("/delete/{id}", response_class=RedirectResponse)
+def delete_car(request: Request, id: int = Path(...)):
+    if not cars.get(id):
+        return templates.TemplateResponse(
+            "search.html",
+            {"request": request, "id": id, "title": "Edit Car"},
+            status_code=status.HTTP_404_NOT_FOUND,
+        )
+
+    del cars[id]
+
+    return RedirectResponse(url="/cars", status_code=302)
+
+
 @app.post("/search", response_class=RedirectResponse)
 def search_cars(id: str = Form(...)):
     return RedirectResponse("/cars/" + id, status_code=302)
@@ -170,14 +184,3 @@ def update_car(
     response[id] = cars[id]
 
     return RedirectResponse(url="/cars", status_code=302)
-
-
-@app.delete("/cars/{id}")
-def delete_car(id: int):
-    if not cars.get(id):
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Could not find car with the given ID",
-        )
-
-    del cars[id]
