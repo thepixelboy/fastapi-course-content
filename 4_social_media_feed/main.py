@@ -1,9 +1,11 @@
 import os
+from datetime import datetime, timedelta
 from typing import List, Optional
 
 from dotenv import load_dotenv
-from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse
+from fastapi import Depends, FastAPI, Request, Response, status
+from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi_login.fastapi_login import LoginManager
@@ -15,7 +17,7 @@ from db import users
 load_dotenv()
 
 SECRET_KEY = os.environ.get("SECRET_KEY")
-ACCESS_TOKEN_EXPIRE_MINUTES = 60
+ACCESS_TOKEN_EXPIRES_MINUTES = 60
 
 manager = LoginManager(secret=SECRET_KEY, token_url="/login", use_cookie=True)
 manager.cookie_name = "auth"
@@ -87,6 +89,56 @@ def get_login(request: Request):
         {
             "request": request,
             "title": "FriendConnect - Login",
-            "invalid": True,
         },
     )
+
+
+@app.post("/login")
+def login(
+    request: Request,
+    response: Response,
+    form_data: OAuth2PasswordRequestForm = Depends(),
+):
+    user = authenticate_user(
+        username=form_data.username, password=form_data.password
+    )
+    if not user:
+        return templates.TemplateResponse(
+            "login.html",
+            {
+                "request": request,
+                "title": "FriendConnect - Login",
+                "invalid": True,
+            },
+            status_code=status.HTTP_401_UNAUTHORIZED,
+        )
+
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRES_MINUTES)
+    access_token = manager.create_access_token(
+        data={"sub": user.username}, expires=access_token_expires
+    )
+    response_method = RedirectResponse(
+        "/home", status_code=status.HTTP_302_FOUND
+    )
+    manager.set_cookie(response_method, access_token)
+
+    return response_method
+
+
+class NotAuthenticatedException(Exception):
+    ...
+
+
+def not_authenticated_exception_handler(request, exception):
+    return RedirectResponse("/login")
+
+
+manager.not_authenticated_exception = NotAuthenticatedException
+app.add_exception_handler(
+    NotAuthenticatedException, not_authenticated_exception_handler
+)
+
+
+@app.get("/home")
+def home(user: User = Depends(manager)):
+    return user
