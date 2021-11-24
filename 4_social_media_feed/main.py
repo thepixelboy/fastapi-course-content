@@ -4,9 +4,20 @@ from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from passlib.context import CryptContext
 from pydantic import BaseModel
 
 from db import users
+
+password_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+
+def get_hashed_password(plain_password):
+    return password_context.hash(plain_password)
+
+
+def verify_password(plain_password, hashed_password):
+    return password_context.verify(plain_password, hashed_password)
 
 
 class Notification(BaseModel):
