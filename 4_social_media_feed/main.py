@@ -141,8 +141,13 @@ app.add_exception_handler(
 
 
 @app.get("/home")
-def home(user: User = Depends(manager)):
-    return user
+def home(request: Request, user: User = Depends(manager)):
+    user = User(**dict(user))
+
+    return templates.TemplateResponse(
+        "home.html",
+        {"request": request, "title": "FriendConnect - Home", "user": user},
+    )
 
 
 @app.get("/logout", response_class=RedirectResponse)
