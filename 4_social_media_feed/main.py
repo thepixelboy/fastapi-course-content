@@ -97,7 +97,6 @@ def get_login(request: Request):
 @app.post("/login")
 def login(
     request: Request,
-    response: Response,
     form_data: OAuth2PasswordRequestForm = Depends(),
 ):
     user = authenticate_user(
@@ -165,7 +164,6 @@ def get_register(request: Request):
         {
             "request": request,
             "title": "FriendConnect - Register",
-            "invalid": False,
         },
     )
 
