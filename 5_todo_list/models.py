@@ -18,7 +18,7 @@ class User(Base):
 
 
 class Task(Base):
-    __tablename__ = "user"
+    __tablename__ = "task"
 
     id = Column(String, primary_key=True, index=True, nullable=False)
     text = Column(String, index=True, nullable=False)
