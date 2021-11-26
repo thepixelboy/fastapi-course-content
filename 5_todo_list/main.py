@@ -127,3 +127,10 @@ def login(
     manager.set_cookie(resp, access_token)
 
     return resp
+
+
+@app.get("/register")
+def get_register(request: Request):
+    return templates.TemplateResponse(
+        "register.html", {"request": request, "title": "Register"}
+    )
