@@ -2,7 +2,7 @@ import os
 from datetime import timedelta
 
 from dotenv import load_dotenv
-from fastapi import Depends, FastAPI, Form, Request, Response, status
+from fastapi import Depends, FastAPI, Form, Path, Request, Response, status
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import RedirectResponse
 from fastapi.security import OAuth2PasswordRequestForm
@@ -129,6 +129,16 @@ def add_task(
         )
     else:
         return RedirectResponse("/tasks", status_code=status.HTTP_302_FOUND)
+
+
+@app.get("/tasks/delete/{id}", response_class=RedirectResponse)
+def delete_task(
+    id: str = Path(...),
+    db: Session = Depends(get_db),
+    user: schemas.User = Depends(manager),
+):
+    crud.delete_task(db=db, id=id)
+    return RedirectResponse("/tasks")
 
 
 @app.get("/login")
