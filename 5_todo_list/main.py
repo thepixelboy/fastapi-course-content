@@ -2,7 +2,7 @@ import os
 from datetime import timedelta
 
 from dotenv import load_dotenv
-from fastapi import Depends, FastAPI, Request, status
+from fastapi import Depends, FastAPI, Form, Request, status
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import RedirectResponse
 from fastapi.security import OAuth2PasswordRequestForm
@@ -134,3 +134,41 @@ def get_register(request: Request):
     return templates.TemplateResponse(
         "register.html", {"request": request, "title": "Register"}
     )
+
+
+@app.post("/register")
+def register(
+    request: Request,
+    username: str = Form(...),
+    email: str = Form(...),
+    name: str = Form(...),
+    password: str = Form(...),
+    db: Session = Depends(get_db),
+):
+    hashed_password = get_hashed_password(password)
+    invalid = False
+    if crud.get_user_by_username(db=db, username=username):
+        invalid = True
+    if crud.get_user_by_email(db=db, email=email):
+        invalid = True
+
+    if not invalid:
+        crud.create_user(
+            db=db,
+            user=schemas.UserCreate(
+                username=username,
+                email=email,
+                name=name,
+                hashed_password=hashed_password,
+            ),
+        )
+        response = RedirectResponse(
+            "/login", status_code=status.HTTP_302_FOUND
+        )
+        return response
+    else:
+        return templates.TemplateResponse(
+            "register.html",
+            {"request": request, "title": "Register", "invalid": True},
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
